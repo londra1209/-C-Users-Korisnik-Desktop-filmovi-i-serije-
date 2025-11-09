@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://api.themoviedb.org https://image.tmdb.org https://cdnjs.cloudflare.com https://www.youtube.com https://*.firebaseio.com https://identitytoolkit.googleapis.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.gstatic.com;">
+    <title>Filmovi i Serije</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <i class="fas fa-film"></i>
+                <span>Filmovi i Serije</span>
+            </div>
+                    
+            <div class="nav-right">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Pretraži filmove, serije, glumce..." id="searchInput">
+                    <button class="search-btn" id="searchBtn">Traži</button>
+                </div>
+                
+                <div class="login-section" id="loginSection">
+                    <button class="login-btn" id="loginBtn">Prijava</button>
+                    <button class="register-btn" id="registerBtn">Registracija</button>
+                    <a href="#favorites" class="favorites-btn" id="favoritesBtn" style="display: none;">
+                        <i class="fas fa-heart"></i> Favoriti
+                    </a>
+                </div>
+                
+                <div class="user-menu" id="userMenu">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <span id="usernameDisplay">Korisnik</span>
+                    <a href="#favorites" class="favorites-btn">
+                        <i class="fas fa-heart"></i> Favoriti
+                    </a>
+                    <button class="logout-btn" id="logoutBtn">Odjava</button>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <div class="container">
+        
+        <div class="favorites-section" id="favoritesSection">
+            <h2 class="section-title">Moji favoriti</h2>
+            <div class="favorites-grid" id="favoritesGrid">
+                <div class="no-favorites">
+                    <i class="fas fa-heart" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>Nemate dodanih favorita</p>
+                </div>
+            </div>
+        </div>
+        
+     
+       
+        <div class="hero-slider" id="heroSlider">
+   <div class="loading">
+      <div class="spinner"></div>
+      <p>Učitavam popularne filmove...</p>
+   </div>
+</div>
+        
+        <h2 class="section-title">Popularno sada</h2>
+        
+        <div class="filter-options">
+            <button class="filter-btn active" data-filter="all">Početna</button>
+            <button class="filter-btn" data-filter="movie">Filmovi</button>
+            <button class="filter-btn" data-filter="tv">Serije</button>
+            <!-- <button class="filter-btn" data-filter="top_rated">Najbolje ocijenjeno</button> -->
+            <button class="filter-btn" data-filter="upcoming">Uskoro</button>
+       <section id="genre-filter" class="filter-bar">
+  <label for="genreSelect">Žanr:</label>
+  <select id="genreSelect">
+      <option value="">Svi žanrovi</option>
+  <option value="28">Akcija</option>
+  <option value="12">Avantura</option>
+  <option value="16">Animirani</option>
+  <option value="35">Komedija</option>
+  <option value="80">Kriminalistički</option>
+  <option value="99">Dokumentarni</option>
+  <option value="18">Drama</option>
+  <option value="10751">Obiteljski</option>
+  <option value="14">Fantazija</option>
+  <option value="36">Povijesni</option>
+  <option value="27">Horor</option>
+  <option value="10402">Glazbeni</option>
+  <option value="9648">Misterij</option>
+  <option value="10749">Romantika</option>
+  <option value="878">Znanstvena fantastika</option>
+  <option value="10770">TV film</option>
+  <option value="53">Triler</option>
+  <option value="10752">Ratni</option>
+  <option value="37">Western</option>
+
+
+  </select>
+</section>
+<section id="year-filter" class="filter-bar">
+        <label for="yearSelect">Godina:</label>
+        <select id="yearSelect">
+            <option value="">Sve godine</option>
+        </select>
+    </section>
+        </div>
+        
+        <div class="results-grid" id="resultsGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Učitavam sadržaj...</p>
+            </div>
+        </div>
+        
+        <div class="pagination" id="pagination"></div>
+    </div>
+    
+    <div class="movie-details" id="movieDetails">
+        
+    </div>
+    
+    
+    <div class="trailer-modal" id="trailerModal">
+        <div class="trailer-container">
+            <button class="trailer-close" id="trailerClose">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="trailerPlaceholder"></div>
+        </div>
+    </div>
+    
+   
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Prijava</h2>
+                <button class="close-modal" id="closeLoginModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" placeholder="Unesite svoj email">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Lozinka</label>
+                <input type="password" id="loginPassword" placeholder="Unesite svoju lozinku">
+            </div>
+            <button class="submit-btn" id="loginSubmit">Prijava</button>
+            <div class="form-footer">
+                Nemate račun? <a id="switchToRegister">Registrirajte se</a>
+            </div>
+        </div>
+    </div>
+    
+   
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Registracija</h2>
+                <button class="close-modal" id="closeRegisterModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="registerName">Ime</label>
+                <input type="text" id="registerName" placeholder="Unesite svoje ime">
+            </div>
+            <div class="form-group">
+                <label for="registerEmail">Email</label>
+                <input type="email" id="registerEmail" placeholder="Unesite svoj email">
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Lozinka</label>
+                <input type="password" id="registerPassword" placeholder="Unesite lozinku">
+            </div>
+            <div class="form-group">
+                <label for="registerConfirmPassword">Potvrdi lozinku</label>
+                <input type="password" id="registerConfirmPassword" placeholder="Ponovite lozinku">
+            </div>
+            <button class="submit-btn" id="registerSubmit">Registracija</button>
+            <div class="form-footer">
+                Već imate račun? <a id="switchToLogin">Prijavite se</a>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Filmovi</h3>
+                <ul class="footer-links">
+                    <li><a href="https://www.imdb.com/" target="_blank"><i class="fas fa-external-link-alt"></i> IMDb</a></li>
+                    <li><a href="https://www.rottentomatoes.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Rotten Tomatoes</a></li>
+                    <li><a href="https://www.metacritic.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Metacritic</a></li>
+                    <li><a href="https://www.fandango.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Fandango</a></li>
+                    <li><a href="https://letterboxd.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Letterboxd</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Serije</h3>
+                <ul class="footer-links">
+                    <li><a href="https://www.imdb.com/tv/" target="_blank"><i class="fas fa-external-link-alt"></i> IMDb TV</a></li>
+                    <li><a href="https://www.rottentomatoes.com/tv/" target="_blank"><i class="fas fa-external-link-alt"></i> Rotten Tomatoes TV</a></li>
+                    <li><a href="https://www.metacritic.com/tv" target="_blank"><i class="fas fa-external-link-alt"></i> Metacritic TV</a></li>
+                    <li><a href="https://www.tvguide.com/" target="_blank"><i class="fas fa-external-link-alt"></i> TV Guide</a></li>
+                    <li><a href="https://www.tvmaze.com/" target="_blank"><i class="fas fa-external-link-alt"></i> TV Maze</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Najave i traileri</h3>
+                <ul class="footer-links">
+                    <li><a href="https://www.youtube.com/user/trailers" target="_blank"><i class="fab fa-youtube"></i> YouTube Trailers</a></li>
+                    <li><a href="https://www.apple.com/trailers/" target="_blank"><i class="fas fa-external-link-alt"></i> Apple Trailers</a></li>
+                    <li><a href="https://www.comingsoon.net/trailers" target="_blank"><i class="fas fa-external-link-alt"></i> ComingSoon.net</a></li>
+                    <li><a href="https://www.firstshowing.net/" target="_blank"><i class="fas fa-external-link-alt"></i> FirstShowing.net</a></li>
+                    <li><a href="https://traileraddict.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Trailer Addict</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Ostalo</h3>
+                <ul class="footer-links">
+                    <li><a href="https://www.netflix.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Netflix</a></li>
+                    <li><a href="https://www.hbo.com/" target="_blank"><i class="fas fa-external-link-alt"></i> HBO</a></li>
+                    <li><a href="https://www.primevideo.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Amazon Prime Video</a></li>
+                    <li><a href="https://www.disneyplus.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Disney+</a></li>
+                    <li><a href="https://www.hulu.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Hulu</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="footer-logo">Filmovi i Serije</div>
+            <p>Web stranica za pretraživanje filmova i serija</p>
+            <p class="api-info"></p>
+            <p>© 2025 Filmovi i Serije - Sva prava pridržana</p>
+        </div>
+        <div class="social-links">
+    <a href="https://facebook.com" target="_blank" class="facebook"><i class="fab fa-facebook"></i></a>
+    <a href="https://youtube.com" target="_blank" class="youtube"><i class="fab fa-youtube"></i></a>
+    <a href="https://x.com" target="_blank" class="x"><i class="fab fa-x"></i></a>
+  </div>      
+    </footer>
+    <script src="js/script.js"></script>
+</body>
+</html>
